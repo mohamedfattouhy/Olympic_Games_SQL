@@ -1,6 +1,6 @@
 <div align='center'>
 
-## Olympic_Games_SQL
+## Olympic Games SQL
 
 <img src="static/olympic_games_icon.png" alt="Olympic Games Icon" width="150px" height="150px">
 
@@ -10,7 +10,7 @@
  
 This project is dedicated to solving problems with MySQL 8.0. This repository has been created to share solutions and tips for overcoming various MySQL-related challenges.
 
-This project is based on the following:  [SQL Project](https://techtfq.com/blog/practice-writing-sql-queries-using-real-dataset)
+This project is based on the following:  [SQL Project](https://techtfq.com/blog/practice-writing-sql-queries-using-real-dataset){:target="_blank"}
 
 ### Objective
 
@@ -25,7 +25,7 @@ The repository is organized as follows:
 
 ### Datasets
 
-All the csv files are available on: [Olympic Games Dataset](https://www.kaggle.com/datasets/heesoo37/120-years-of-olympic-history-athletes-and-results)
+All the csv files are available on: [Olympic Games Dataset](https://www.kaggle.com/datasets/heesoo37/120-years-of-olympic-history-athletes-and-results){:target="_blank"}
 
 Note: To use this project correctly, be sure to create a `/data` folder and to put your csv files there.
 
