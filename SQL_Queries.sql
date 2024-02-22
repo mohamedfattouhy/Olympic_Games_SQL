@@ -68,3 +68,61 @@ limit 2;
 ------------- Query 10 -------------
 -- Find the Ratio of male and female athletes participated in all olympic games
 select (select count(sex) from athlete_events where sex="M")/(select count(sex) from athlete_events where sex="F") as ratio_male_female
+
+
+------------- Query 11 -------------
+-- Fetch the top 5 athletes who have won the most gold medals
+with top_5_gold_medals as (
+    select *, dense_rank() over(order by total_gold_medals desc) as rnk from (
+        select name, count(medal) as total_gold_medals from athlete_events
+        where medal="Gold"
+        group by name
+        ) as x
+    ) 
+
+select name, total_gold_medals from top_5_gold_medals
+where rnk <= 5;
+
+
+------------- Query 12 -------------
+-- Fetch the top 5 athletes who have won the most medals (gold/silver/bronze)
+with top_5_most_medals as 
+    (select *, dense_rank() over(order by total_medals desc) as rnk from (
+        select name, count(medal) as total_medals from athlete_events
+        where medal is not null
+        group by name) as x) 
+
+select name, total_medals from top_5_most_medals
+where rnk <= 5;
+
+
+------------- Query 13 -------------
+-- Fetch the top 5 most successful countries in olympics. Success is defined by no of medals won
+with top_5_countries1 as (
+    select *, dense_rank() over(order by total_medals desc) as rnk from (
+        select noc, count(medal) as total_medals from athlete_events
+        where medal is not null
+    group by noc) as x
+    ),
+
+    top_5_countries2 as (
+        select tc.*, nr.region from top_5_countries1 as tc
+        join
+        olympics_history_noc_regions as nr
+        on (tc.noc = nr.noc)
+    )
+
+select region as country, total_medals from top_5_countries2
+where rnk <= 5;
+
+
+------------- Query 14 -------------
+-- List down total gold, silver and bronze medals won by each country
+select nr.region as country, x.medal, x.no_medals from (select noc, medal,
+    count(medal) as no_medals from athlete_events
+    where medal is not null
+    group by noc, medal
+    order by noc) as x
+join
+olympics_history_noc_regions as nr
+on (x.noc = nr.noc);
