@@ -126,3 +126,32 @@ select nr.region as country, x.medal, x.no_medals from (select noc, medal,
 join
 olympics_history_noc_regions as nr
 on (x.noc = nr.noc);
+
+
+------------- Query 15 -------------
+-- List down total gold, silver and bronze medals won by each country corresponding to each olympic games
+with medals_by_games as (
+        select nr.region as country, x.games, x.medal, x.no_medals from (select noc, games, medal,
+            count(medal) as no_medals from athlete_events
+            where medal is not null
+            group by noc, games, medal
+            order by noc) as x
+        join
+        olympics_history_noc_regions as nr
+        on (x.noc = nr.noc)
+    ),
+
+    crosstab_medals as (
+        select country, games, 
+        min(case when medal='Gold' then no_medals end) as Gold_Medals,
+        min(case when medal='Silver' then no_medals end) as Silver_Medals,
+        min(case when medal='Bronze' then no_medals end) as Bronze_Medals
+        from medals_by_games
+        group by country, games
+    )
+
+select country, games,
+case when Gold_Medals is null then 0 else Gold_Medals end as 'Gold Medals',
+case when Silver_Medals is null then 0 else Silver_Medals end as 'Silver Medals',
+case when Bronze_Medals is null then 0 else Bronze_Medals end as 'Bronze Medals'
+from crosstab_medals;
