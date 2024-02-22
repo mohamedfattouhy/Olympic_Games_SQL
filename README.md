@@ -22,6 +22,7 @@ The dataset used is a historical dataset of the modern Olympic Games, including 
 
 The repository is organized as follows: 
   - `csv_to_database.py` contains code to integrate data from csv files into your database.
+  - `SQL_Queries.py` contains my SQL queries to answer the various questions.
 
 ### Datasets
 
