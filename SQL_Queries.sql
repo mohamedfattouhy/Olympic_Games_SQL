@@ -283,3 +283,21 @@ select distinct region as country, 0 as gold,
 case when medal_rank=2 then no_medal else 0 end as silver,
 case when medal_rank=3 then no_medal else 0 end as bronze
 from rank_medals
+
+
+------------- Query 19 -------------
+-- In which sport, India has won highest medals ?
+select sport, count(medal) as no_medals from athlete_events
+where NOC='IND' and medal is not null
+group by sport
+order by no_medals desc
+limit 1;
+
+
+------------- Query 19 -------------
+-- Break down all olympic games where India won medal for Hockey and how many medals in each olympic games
+select games, count(medal) as no_medals from athlete_events
+where NOC='IND' and medal is not null
+and sport='Hockey'
+group by games
+order by games;
