@@ -188,3 +188,63 @@ nth_value(no_medals, 3) over(partition by games)) as 'max bronze'
 
 from medals_rank
 where rnk = 1;
+
+------------- Query 17 -------------
+-- Identify which country won the most gold, most silver, most bronze medals and the most medals in each olympic games
+with medals_by_games_and_country as (
+        select x.games, nr.region, x.medal, x.no_medals 
+        from (select games, noc, medal,
+            count(medal) as no_medals from athlete_events
+            where medal is not null
+            group by games, noc, medal
+            order by games) as x
+        join
+        olympics_history_noc_regions as nr
+        on (x.noc = nr.noc)
+    ),
+
+    medals_rank as (
+        select *, dense_rank() over(partition by games, medal order by no_medals desc) as rnk,
+        case medal when 'Gold' then 1
+                   when 'Silver' then 2
+                   when 'Bronze' then 3 end as medal_rank
+        from medals_by_games_and_country
+        order by games, medal_rank
+    ),
+
+    crosstab_max_medals as (
+        select distinct games, concat(first_value(region) over(partition by games), ' - ',
+        first_value(no_medals) over(partition by games)) as 'max gold',
+        concat(nth_value(region, 2) over(partition by games), ' - ',
+        nth_value(no_medals, 2) over(partition by games)) as 'max silver',
+        concat(nth_value(region, 3) over(partition by games), ' - ',
+        nth_value(no_medals, 3) over(partition by games)) as 'max bronze'
+        from medals_rank
+        where rnk = 1
+    ),
+
+    no_medals_by_games_and_country as (
+        select *, dense_rank() over(partition by games order by max_medals desc) as rnk
+            from (select games, noc,
+            count(games) as max_medals from athlete_events
+            where medal in ('Gold', 'Silver', 'Bronze')
+            group by games, noc
+            order by games) as x
+    ),
+
+    most_medals_by_games as (
+        select games, concat(region, ' - ', max_medals) as max_medals
+        from no_medals_by_games_and_country as nm
+        join
+        olympics_history_noc_regions as nr
+        on (nm.noc = nr.noc)
+        where rnk = 1
+        order by games
+    )
+
+select cmm.*, mmg.max_medals 
+from crosstab_max_medals as cmm
+join
+most_medals_by_games as mmg
+on (cmm.games = mmg.games)
+order by games;
