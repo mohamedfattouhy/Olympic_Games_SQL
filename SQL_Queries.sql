@@ -155,3 +155,36 @@ case when Gold_Medals is null then 0 else Gold_Medals end as 'Gold Medals',
 case when Silver_Medals is null then 0 else Silver_Medals end as 'Silver Medals',
 case when Bronze_Medals is null then 0 else Bronze_Medals end as 'Bronze Medals'
 from crosstab_medals;
+
+
+------------- Query 16 -------------
+-- Identify which country won the most gold, most silver and most bronze medals in each olympic games
+with medals_by_games_and_country as (
+        select x.games, nr.region, x.medal, x.no_medals from (select games, noc, medal,
+            count(medal) as no_medals from athlete_events
+            where medal is not null
+            group by games, noc, medal
+            order by games) as x
+            join
+            olympics_history_noc_regions as nr
+            on (x.noc = nr.noc)
+    ),
+
+    medals_rank as (
+        select *, dense_rank() over(partition by games, medal order by no_medals desc) as rnk,
+        case medal when 'Gold' then 1
+                   when 'Silver' then 2
+                   when 'Bronze' then 3 end as medal_rank
+        from medals_by_games_and_country
+        order by games, medal_rank
+    )
+
+select distinct games, concat(first_value(region) over(partition by games), ' - ',
+first_value(no_medals) over(partition by games)) as 'max gold',
+concat(nth_value(region, 2) over(partition by games), ' - ',
+nth_value(no_medals, 2) over(partition by games)) as 'max silver',
+concat(nth_value(region, 3) over(partition by games), ' - ',
+nth_value(no_medals, 3) over(partition by games)) as 'max bronze'
+
+from medals_rank
+where rnk = 1;
