@@ -248,3 +248,38 @@ join
 most_medals_by_games as mmg
 on (cmm.games = mmg.games)
 order by games;
+
+
+------------- Query 18 -------------
+-- Which countries have never won gold medal but have won silver/bronze medals ?
+create index idx_noc on athlete_events(noc(3)); -- We create index to speed up information searches on the 'noc' column
+                                                -- noc(3) means that an index is created on the 'noc' column using 
+                                                -- the first 3 characters of each value
+
+with silver_bronze_medals as (
+        select region, medal, no_medal 
+        from (select noc, medal,
+            count(medal) as no_medal from athlete_events
+            where medal is not null 
+            and noc not in (select distinct noc from athlete_events where medal='Gold')
+            group by noc, medal
+            order by noc) as x
+        join
+        olympics_history_noc_regions as nr
+        on (x.noc = nr.noc)
+    ),
+
+    rank_medals as (
+    select *, case medal
+                when 'Gold' then 1
+                when 'Silver' then 2
+                when 'Bronze' then 3
+                end as medal_rank
+    from silver_bronze_medals
+    order by region, medal_rank
+    )
+
+select distinct region as country, 0 as gold,
+case when medal_rank=2 then no_medal else 0 end as silver,
+case when medal_rank=3 then no_medal else 0 end as bronze
+from rank_medals
